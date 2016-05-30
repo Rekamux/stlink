@@ -754,11 +754,22 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
         devAddr=atoi(c);
         ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
+
+    char *env_serial = getenv("STLINK_SERIAL");
+    if (p_usb_iserial == NULL) {
+      ILOG("Using serial from STLINK_SERIAL %s\n", env_serial);
+      p_usb_iserial = env_serial;
+    }
+
     while (cnt--){
         libusb_get_device_descriptor( list[cnt], &desc );
         if (desc.idVendor!=USB_ST_VID) continue;
-        if (devBus && devAddr)
-            if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
+        if (devBus && devAddr) {
+            if ((libusb_get_bus_number(list[cnt])!=devBus) ||
+                (libusb_get_device_address(list[cnt])!=devAddr)) {
+                continue;
+            }
+        }
         if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ){
             if ((p_usb_iserial != NULL)){
                 struct libusb_device_handle* handle;
